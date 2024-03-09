@@ -38,7 +38,7 @@ impl GraphicUtils {
             character_style,
             text_style,
         );
-        Rectangle::new(pos, Size::new(width as u32, text.bounding_box().size.height))
+        Rectangle::new(text.bounding_box().top_left, Size::new(width as u32, text.bounding_box().size.height))
             .into_styled(background_style)
             .draw(display)?;
         text.draw(display)

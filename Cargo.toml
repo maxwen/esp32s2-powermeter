@@ -37,4 +37,4 @@ opt-level = 3
 debug = true
 
 [patch.crates-io]
-ina219_rs = { path = "/home/maxl/esp32/rust/ina219" }
+ina219_rs = { git = "https://github.com/maxwen/ina219" }

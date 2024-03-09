@@ -34,8 +34,9 @@ use esp32s2_hal::spi::master::Spi;
 use esp32s2_hal::spi::SpiMode;
 use esp32s2_hal::timer::TimerGroup;
 use esp_backtrace;
+use esp_println::println;
 use heapless::String;
-use ina219_rs::ina219::PowerMonitor;
+use ina219_rs::ina219::{INA219, PowerMonitor};
 use profont::PROFONT_24_POINT;
 use st7789::{Orientation, ST7789};
 use static_cell::{make_static, StaticCell};
@@ -144,25 +145,25 @@ pub async fn handle_button_d2(pin: GpioPin<Unknown, 2>) {
 
 #[embassy_executor::task]
 pub async fn handle_power(i2c: blocking::i2c::I2cDevice<'static, CriticalSectionRawMutex, I2C<'static, I2C0>>) {
-    // let mut ina219 = INA219::new(i2c);
-    // match ina219.init() {
-    //     Err(e) => {
-    //         println!("{:?}", e);
-    //         return;
-    //     }
-    //     _ => {}
-    // }
-    //
-    let mut i = 0.0;
+    let mut ina219 = INA219::new(i2c);
+    match ina219.init() {
+        Err(e) => {
+            println!("{:?}", e);
+            return;
+        }
+        _ => {}
+    }
+
+    // let mut i = 0.0;
     let mut ticker = Ticker::every(Duration::from_millis(500));
     loop {
-        // if let Ok(power_monitor) = ina219.sense() {
-        let mut input_data = InputData::new();
-        let mut power_monitor = PowerMonitor::new(i, i, i, i);
-        input_data.power = power_monitor;
-        INPUT_CHANNEL.send(input_data).await;
-        // }
-        i += 1.0;
+        if let Ok(power_monitor) = ina219.sense() {
+            let mut input_data = InputData::new();
+            // let mut power_monitor = PowerMonitor::new(i, i, i, i);
+            input_data.power = power_monitor;
+            INPUT_CHANNEL.send(input_data).await;
+        }
+        // i += 1.0;
         ticker.next().await;
     }
 }
@@ -302,19 +303,19 @@ async fn main(spawner: Spawner) -> ! {
             match input_data.button {
                 1 => {
                     if input_data.is_low {
-                        rect_top_red.draw(&mut display);
+                        // rect_top_red.draw(&mut display);
                     }
                     if input_data.is_high {
-                        rect_top_green.draw(&mut display);
+                        // rect_top_green.draw(&mut display);
                         power_display = power_display.previous().unwrap_or(PowerDisplay::Shunt);
                     }
                 }
                 2 => {
                     if input_data.is_low {
-                        rect_bottom_red.draw(&mut display);
+                        // rect_bottom_red.draw(&mut display);
                     }
                     if input_data.is_high {
-                        rect_bottom_green.draw(&mut display);
+                        // rect_bottom_green.draw(&mut display);
                         power_display = power_display.next().unwrap_or(PowerDisplay::Power);
                     }
                 }
@@ -326,25 +327,24 @@ async fn main(spawner: Spawner) -> ! {
 
             match power_display {
                 PowerDisplay::Shunt => {
-                    write!(power_display_buf, "{:04}", input_data.power.Shunt).unwrap();
+                    write!(power_display_buf, "{:.3}", input_data.power.Shunt).unwrap();
                     write!(unit_display_buf, "mV").unwrap();
                 }
                 PowerDisplay::Voltage => {
-                    write!(power_display_buf, "{:04}", input_data.power.Voltage).unwrap();
+                    write!(power_display_buf, "{:.3}", input_data.power.Voltage).unwrap();
                     write!(unit_display_buf, "V ").unwrap();
                 }
                 PowerDisplay::Current => {
-                    write!(power_display_buf, "{:04}", input_data.power.Current).unwrap();
+                    write!(power_display_buf, "{:>5}", input_data.power.Current).unwrap();
                     write!(unit_display_buf, "mA").unwrap();
                 }
                 PowerDisplay::Power => {
-                    write!(power_display_buf, "{:04}", input_data.power.Power).unwrap();
+                    write!(power_display_buf, "{:>5}", input_data.power.Power).unwrap();
                     write!(unit_display_buf, "mW").unwrap();
                 }
             }
-
-            GraphicUtils::display_text_with_background(&mut display, create_point(50, display_height as i32 / 2), voltage_segment_style, center_text_style, power_display_buf.as_str(), background_style, display_width);
-            GraphicUtils::display_text_with_background(&mut display, create_point(display_width as i32 - unit_display_width , display_height as i32 / 2), large_character_style, center_text_style, unit_display_buf.as_str(), background_style, display_width);
+            GraphicUtils::display_text_with_background(&mut display, create_point(20, display_height as i32 / 2), voltage_segment_style, center_text_style, power_display_buf.as_str(), background_style, display_width);
+            GraphicUtils::display_text_with_background(&mut display, create_point(display_width as i32 - unit_display_width, display_height as i32 / 2), large_character_style, center_text_style, unit_display_buf.as_str(), background_style, display_width);
         }
     }
 }
