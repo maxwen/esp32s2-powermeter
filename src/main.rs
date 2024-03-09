@@ -25,6 +25,7 @@ use embedded_graphics::text::{Alignment, Baseline, Text, TextStyle, TextStyleBui
 use embedded_graphics::text::renderer::TextRenderer;
 use embedded_hal_async::digital::Wait;
 use enum_iterator::Sequence;
+use esp32_utils_crate::graphics::GraphicUtils;
 use esp32s2_hal::{clock::ClockControl, embassy, IO, peripherals::Peripherals, prelude::*, psram};
 use esp32s2_hal::clock::Clocks;
 use esp32s2_hal::gpio::{GpioPin, Unknown};
@@ -40,10 +41,6 @@ use ina219_rs::ina219::{INA219, PowerMonitor};
 use profont::PROFONT_24_POINT;
 use st7789::{Orientation, ST7789};
 use static_cell::{make_static, StaticCell};
-
-use crate::graphics::GraphicUtils;
-
-mod graphics;
 
 const ROWSTART: i32 = 40;
 const COLSTART: i32 = 54;
@@ -327,19 +324,35 @@ async fn main(spawner: Spawner) -> ! {
 
             match power_display {
                 PowerDisplay::Shunt => {
-                    write!(power_display_buf, "{:.3}", input_data.power.Shunt).unwrap();
+                    if input_data.power.Current != 0.0 {
+                        write!(power_display_buf, "{:.3}", input_data.power.Shunt).unwrap();
+                    } else {
+                        write!(power_display_buf, "{:.3}", 0.0).unwrap();
+                    }
                     write!(unit_display_buf, "mV").unwrap();
                 }
                 PowerDisplay::Voltage => {
-                    write!(power_display_buf, "{:.3}", input_data.power.Voltage).unwrap();
+                    if input_data.power.Current != 0.0 {
+                        write!(power_display_buf, "{:.3}", input_data.power.Voltage).unwrap();
+                    } else {
+                        write!(power_display_buf, "{:.3}", 0.0).unwrap();
+                    }
                     write!(unit_display_buf, "V ").unwrap();
                 }
                 PowerDisplay::Current => {
-                    write!(power_display_buf, "{:>5}", input_data.power.Current).unwrap();
+                    if input_data.power.Current != 0.0 {
+                        write!(power_display_buf, "{:>5}", input_data.power.Current).unwrap();
+                    } else {
+                        write!(power_display_buf, "{:>5}", 0.0).unwrap();
+                    }
                     write!(unit_display_buf, "mA").unwrap();
                 }
                 PowerDisplay::Power => {
-                    write!(power_display_buf, "{:>5}", input_data.power.Power).unwrap();
+                    if input_data.power.Current != 0.0 {
+                        write!(power_display_buf, "{:>5}", input_data.power.Power).unwrap();
+                    } else {
+                        write!(power_display_buf, "{:>5}", 0.0).unwrap();
+                    }
                     write!(unit_display_buf, "mW").unwrap();
                 }
             }
