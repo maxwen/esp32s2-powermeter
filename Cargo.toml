@@ -6,7 +6,7 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-esp32s2-hal = { version = "0.15.0", features = ["embassy", "embassy-time-timg0", "embassy-executor-thread", "async", "psram-2m"] }
+esp-hal = { version = "0.16.0", features = ["esp32s2", "embassy", "embassy-time-timg0", "embassy-executor-thread", "async", "psram-2m"] }
 esp-backtrace = { version = "0.11.0", features = ["esp32s2", "panic-handler", "exception-handler", "println"] }
 esp-println = { version = "0.9.0", features = ["esp32s2", "log"] }
 log = { version = "0.4.20" }
@@ -17,15 +17,16 @@ embassy-sync = "0.5.0"
 embassy-net = { version = "0.4.0", features = ["tcp", "udp", "dhcpv4", "dns"] }
 embassy-embedded-hal = { version = "0.1.0" }
 embassy-futures = "0.1.1"
-st7789 = { path = "/home/maxl/esp32/rust/st7789" }
+st7789 = "0.7.0"
 embedded-graphics = "0.8.1"
 display-interface-spi = "0.4.1"
 esp32-utils-crate = { path = "../esp32-utils-crate" }
 static_cell = { version = "2.0.0", features = ["nightly"] }
 ina219_rs = "0.5.1"
-heapless = { version = "0.7.15", default-features = false, features = ["serde"] }
+heapless = { version = "0.8.0", default-features = false, features = ["serde"] }
 eg-seven-segment = "0.2.0"
 embedded-hal-async = "1.0.0"
+embedded-hal = "1.0.0"
 enum-iterator = "2.0.0"
 profont = "0.7.0"
 
@@ -37,4 +38,5 @@ opt-level = 3
 debug = true
 
 [patch.crates-io]
-ina219_rs = { git = "https://github.com/maxwen/ina219" }
+ina219_rs = { path = "../ina219" }
+st7789 = { git = "https://github.com/maxwen/st7789" }
